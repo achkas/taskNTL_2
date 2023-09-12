@@ -29,10 +29,9 @@ public:
     }
 
 
-    auto add_element(int num) {
-
+    auto add_element(int num) 
+    {
         if (index > size - 1) throw Unwanted_index();
-
         element[index] = num;
         index++;
         return element[index];
@@ -40,21 +39,21 @@ public:
 
     }    
 
-    auto get_element(int index) {
-        if (index > size - 1) throw("...");
-        int r = element[index];
-        return r;
+    auto get_element(int index) 
+    {
+        if ((index > size - 1) || (index < 0)) throw("...");
+        return element[index];
     }
 
-    auto get_size() {
-
+    auto get_size()
+    {
         int S = size;
         return S;
     }
 
 
-    void print_arr(arr*) {
-
+    void print_arr(arr*) 
+    {
         for (int i = 0; i < size; ++i)
             std::cout << element[i] << " ";
         std::cout << std::endl;
@@ -62,11 +61,26 @@ public:
     
     arr& operator=(const arr& other)
     {
-        this->size = other.size;
-        this->element = new int[other.size];
-        for (int i = 0; i < other.size; ++i)
-            this->element[i] = other.element[i];
+        if (this != &other)
+        {
+            delete[] element;
+            this->size = other.size;
+            this->index = other.index;
+            this->element = new int[other.size];
+            for (int i = 0; i < other.size; ++i)
+                this->element[i] = other.element[i];
+        }
         return *this;
+    } 
+
+    
+    arr(const arr& other) 
+    {       
+            this->size = other.size;
+            this->index = other.index;
+            this->element = new int[other.size];
+            for (int i = 0; i < other.size; ++i)
+                this->element[i] = other.element[i];                 
     }
 
     ~arr()
@@ -96,8 +110,8 @@ int main()
         new_array.add_element(909);
         new_array.add_element(304);        
 
-       /* std::cout << smart_array.get_element(4) <<"*"<< smart_array.get_size() << std::endl;
-        std::cout << new_array.get_element(0) << "*" << new_array.get_size() << std::endl;*/  
+        /*std::cout << smart_array.get_element(4) <<"*"<< smart_array.get_size() << std::endl;
+        std::cout << new_array.get_element(0) << "*" << new_array.get_size() << std::endl; */ 
 
         new_array.print_arr(&new_array);
         std::cout << std::endl;
@@ -105,8 +119,15 @@ int main()
         smart_array.print_arr(&smart_array);
         std::cout << std::endl;
 
+        arr smart_array_copy(smart_array);
+        smart_array_copy.print_arr(&smart_array_copy);
+        std::cout << std::endl;
+        
+
         smart_array = new_array;
 
+      /*smart_array = smart_array;*/
+        
 
         smart_array.print_arr(&smart_array);        
 

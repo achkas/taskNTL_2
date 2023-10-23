@@ -37,6 +37,34 @@ public:
         return  table[elem];
     }
 
+   /* T Get_table(int rows, int cols)
+    {
+
+        if ((rows > 0) && (cols > 0))
+            return table[rows][cols];
+        else            
+        return 0;
+    }
+
+    class m_operator {
+
+        arr* my_arr;
+        int my_rows;
+    public:
+        m_operator(arr* other, int rows): my_arr(other), my_rows(rows){}
+
+        T operator[](int cols)
+        {
+            return my_arr->Get_table(my_rows, cols);
+        }
+
+    };
+
+    m_operator operator[](int cols)
+    {
+        return m_operator(this, cols);
+    }*/
+
     arr(const arr& other)
     {
         this->rows = other.rows;
@@ -145,7 +173,7 @@ int main()
     SetConsoleOutputCP(1251);      
 
     auto test = arr<int>(6, 5);
-    test[3][13] = 4;
+    test[3][3] = 4;
     std::cout << test[3][3];
     std::cout << std::endl;
     test.print_arr();

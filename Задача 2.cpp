@@ -37,6 +37,54 @@ public:
         return  table[elem];
     }
 
+    arr(const arr& other)
+    {
+        this->rows = other.rows;
+        this->cols = other.cols;
+        table = (T**) new T * [other.rows]();
+        for (int i = 0; i < other.rows; i++)
+        {
+            table[i] = new T[other.cols]();
+        }
+        
+        for (int i = 0; i < other.rows; i++)
+            for (int j = 0; j < other.cols; j++)
+                table[i][j] = other.table[i][j];
+
+    }
+
+    arr& operator=(const arr& other)
+    {
+        if (this != &other)
+        {
+            if (cols > 0)
+            {
+                for (int i = 0; i < rows; i++)
+                    delete[] table[i];
+            }
+
+            if (rows > 0)
+            {
+                delete[] table;
+                table = nullptr;
+            }
+
+            this->rows = other.rows;
+            this->cols = other.cols;
+            table = (T**) new T * [other.rows]();
+            for (int i = 0; i < other.rows; i++)
+            {
+                table[i] = new T[other.cols]();
+
+            }
+            
+            for (int i = 0; i < other.rows; i++)
+                for (int j = 0; j < other.cols; j++)
+                    table[i][j] = other.table[i][j];
+        }
+        return *this;
+    }
+
     T size(int r, int c)
     {
         if (r > 0)
@@ -48,6 +96,7 @@ public:
         if (c > 0)
         {
             delete[] table;
+            table = nullptr;
         }
        
         this->rows = r;
@@ -80,7 +129,8 @@ public:
         }
 
         if (rows > 0)
-            delete[] table;        
+            delete[] table;
+        table = nullptr;
     }
 };
 
@@ -95,7 +145,7 @@ int main()
     SetConsoleOutputCP(1251);      
 
     auto test = arr<int>(6, 5);
-    test[3][3] = 4;
+    test[3][13] = 4;
     std::cout << test[3][3];
     std::cout << std::endl;
     test.print_arr();

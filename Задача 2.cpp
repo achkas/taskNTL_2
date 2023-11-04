@@ -1,166 +1,13 @@
 ﻿#include <iostream>
 #include <string>
 #include <windows.h>
-#include <exception>
+#include <vector>
+#include <algorithm>
+#include <array>
+#include <set>
+#include <map>
+#include <unordered_map>
 
-template<class T>
-class arr
-{
-private:
-    int rows;
-    int cols;
-    T** table;  
-
-
-public:
-    arr(int rows, int cols)
-    {
-        table = (T**) new T* [rows]();        
-        for (int i = 0; i < rows; i++)
-        {
-            table[i] = new int[cols]();
-        }
-        this->rows = rows;
-        this->cols = cols;
-
-    }
-
-
-
-    T* operator[](T elem)
-    {
-        return table[elem];
-    }
-
-    const T* operator[](const T elem)const
-    {
-        return  table[elem];
-    }
-
-   /* T Get_table(int rows, int cols)
-    {
-
-        if ((rows > 0) && (cols > 0))
-            return table[rows][cols];
-        else            
-        return 0;
-    }
-
-    class m_operator {
-
-        arr* my_arr;
-        int my_rows;
-    public:
-        m_operator(arr* other, int rows): my_arr(other), my_rows(rows){}
-
-        T operator[](int cols)
-        {
-            return my_arr->Get_table(my_rows, cols);
-        }
-
-    };
-
-    m_operator operator[](int cols)
-    {
-        return m_operator(this, cols);
-    }*/
-
-    arr(const arr& other)
-    {
-        this->rows = other.rows;
-        this->cols = other.cols;
-        table = (T**) new T * [other.rows]();
-        for (int i = 0; i < other.rows; i++)
-        {
-            table[i] = new T[other.cols]();
-        }
-        
-        for (int i = 0; i < other.rows; i++)
-            for (int j = 0; j < other.cols; j++)
-                table[i][j] = other.table[i][j];
-
-    }
-
-    arr& operator=(const arr& other)
-    {
-        if (this != &other)
-        {
-            if (cols > 0)
-            {
-                for (int i = 0; i < rows; i++)
-                    delete[] table[i];
-            }
-
-            if (rows > 0)
-            {
-                delete[] table;
-                table = nullptr;
-            }
-
-            this->rows = other.rows;
-            this->cols = other.cols;
-            table = (T**) new T * [other.rows]();
-            for (int i = 0; i < other.rows; i++)
-            {
-                table[i] = new T[other.cols]();
-
-            }
-            
-            for (int i = 0; i < other.rows; i++)
-                for (int j = 0; j < other.cols; j++)
-                    table[i][j] = other.table[i][j];
-        }
-        return *this;
-    }
-
-    T size(int r, int c)
-    {
-        if (r > 0)
-        {            
-            for (int i = 0; i < r; i++)
-                delete[] table[i];
-        }
-
-        if (c > 0)
-        {
-            delete[] table;
-            table = nullptr;
-        }
-       
-        this->rows = r;
-        this->cols = c;
-        
-        table = (T**) new T* [r](); 
-        for (int i = 0; i < r; i++)
-            table[i] = (T*) new T[c]();
-        
-        return **table;
-    }
-
-    void print_arr()
-    {
-        for (int i = 0; i < rows; i++) 
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                std::cout << table[i][j] << " ";
-            }
-            std::cout << std::endl;
-        }
-    }
-
-    ~arr()
-    {
-        if (cols > 0) {
-            for (int i = 0; i < rows; i++)
-                delete[] table[i];
-        }
-
-        if (rows > 0)
-            delete[] table;
-        table = nullptr;
-    }
-};
 
 
 
@@ -172,16 +19,25 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);      
 
-    auto test = arr<int>(6, 5);
-    test[3][3] = 4;
-    std::cout << test[3][3];
+    std::cout << "[IN] : " << std::endl;   
+
+    std::array<int, 6> arr_i{ 1, 5, 1, 3, 4, 4 };
+
+    for (const auto& elem : arr_i)
+        std::cout << elem << std::endl;
+
     std::cout << std::endl;
-    test.print_arr();
-    test.size(3, 3);
-    std::cout << std::endl;
-    test[2][2] = 9;
-    std::cout << test[2][2] << std::endl;
-    test.print_arr();      
+
+    std::cout << "[OUT] : " << std::endl;
+
+    std::set<int> set_i;         
+
+    set_i.insert(arr_i.begin(), arr_i.end());
+    
+    std::for_each(set_i.rbegin(), set_i.rend(), [](int number)
+        {
+            std::cout << number << ' ' << std::endl;
+        });   
 
     return 0;
 }

@@ -2,75 +2,54 @@
 
 #include <iostream>
 #include<thread>
-#include <random>
-#include <iterator>
+#include<atomic>
 #include <chrono>
 #include <string>
 #include <windows.h>
-#include<algorithm>
-#include <future>
+#include<mutex>
 using namespace std::chrono_literals;
 
-void zap(std::vector<int>& z, int d)
+int cl(int man, std::atomic<int>& c)
 {
-	std::mt19937 gen;
-	std::uniform_int_distribution<int> dis(0, d);
-	auto rand_num([=]() mutable {return dis(gen); });
-	generate(z.begin(), z.end(), rand_num);
+    
+    for (int i = 0; i < man; i++)
+    {      
+        c++;
+        std::this_thread::sleep_for(1000ms);
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+        std::cout << "client: " << c << std::endl;        
+    }
+    return c;
 }
-
-void FR_E(int& a)
-{
-	//std::lock_guard grd(m3);
-	a = a * 2;	
+ 
+int op(int man, std::atomic<int>& c)
+{    
+    for (int i = 0; i < man; i++)
+    {        
+        std::this_thread::sleep_for(2090ms);
+        c--;
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);//зелёныи
+        std::cout << "oprtor: " << c << std::endl;        
+    }
+    return c;
 }
-
-void print_vec(std::vector<int> v)
-{
-	for (const auto& elem : v)
-		std::cout << elem << " ";
-	std::cout << std::endl;
-}
-
-
-
-
-
-
-
-template<typename Iterator, typename T>
-T parallel_FR_E(Iterator begin, Iterator end, T init)
-{
-	size_t cur_size = std::distance(begin, end);	
-	unsigned long const max_size = 15;
-	if (cur_size <= max_size)
-	{		
-		return std::for_each(begin, end, FR_E);
-	}
-	else
-	{
-		Iterator mid_point = begin;
-		std::advance(mid_point, cur_size / 2);
-		T second_half_result = parallel_FR_E(mid_point, end, init);
-		std::future<T> first_half_result = std::async(parallel_FR_E<Iterator, T>, begin, mid_point, init);
-		return first_half_result.get();
-	}
-}
-
-
-
 
 int main()
 {
-	setlocale(LC_ALL, "ru");
-	SetConsoleCP(1251);
-	SetConsoleOutputCP(1251);
+    setlocale(LC_ALL, "ru");
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
 
-	std::vector<int> vecA(20);
-	zap(vecA, 30);
-	print_vec(vecA);
-	parallel_FR_E(vecA.begin(), vecA.end(), FR_E);
-	print_vec(vecA);
-
-	return 0;
+    std::atomic<int> c;
+    int man = 10;    
+    //std::cout << std::boolalpha << c.is_always_lock_free << std::endl;
+    
+    std::thread t3([&]() {c.store(cl(man, c), std::memory_order_seq_cst); });
+    std::thread t4([&]() {c.store(op(man, c), std::memory_order_seq_cst/*std::memory_order_relaxed*/); });
+    t3.join();
+    t4.join();    
+    std::cout << "Количество оставшихся клиентов: " << c << std::endl;
+    return 0;
 }
+//1std::memory_order_relaxed, 2std::memory_order_acquire, 3std::memory_order_consume,
+//4std::memory_order_acq_rel, 5std::memory_order_release и 6std::memory_order_seq_cst.

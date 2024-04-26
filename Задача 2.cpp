@@ -1,55 +1,106 @@
 ﻿//Задача 2
 
-#include <iostream>
-#include<thread>
-#include<atomic>
-#include <chrono>
 #include <string>
-#include <windows.h>
-#include<mutex>
-using namespace std::chrono_literals;
+#include <iostream>
+#include <algorithm>
 
-int cl(int man, std::atomic<int>& c)
+
+
+class Text {
+public:
+    virtual void render(const std::string& data) const {
+        std::cout << data;
+    }
+};
+
+
+class DecoratedText : public Text {
+public:
+    explicit DecoratedText(Text* text) : text_(text) {}
+    Text* text_;
+};
+
+class ItalicText : public DecoratedText {
+public:
+    explicit ItalicText(Text* text) : DecoratedText(text) {}
+    void render(const std::string& data)  const {
+        std::cout << "<i>";
+        text_->render(data);
+        std::cout << "</i>";
+    }
+};
+
+class BoldText : public DecoratedText {
+public:
+    explicit BoldText(Text* text) : DecoratedText(text) {}
+    void render(const std::string& data) const {
+        std::cout << "<b>";
+        text_->render(data);
+        std::cout << "</b>";
+    }
+};
+
+class Paragraph :public DecoratedText 
 {
-    
-    for (int i = 0; i < man; i++)
-    {      
-        c++;
-        std::this_thread::sleep_for(1000ms);
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
-        std::cout << "client: " << c << std::endl;        
+public:
+    explicit Paragraph(Text* text) : DecoratedText(text) {}
+    void render(const std::string& data) const 
+    {
+        std::cout << "<p>";
+        text_->render(data);
+        std::cout << "</p>";
     }
-    return c;
-}
- 
-int op(int man, std::atomic<int>& c)
+};
+
+class Reversed :public DecoratedText
 {    
-    for (int i = 0; i < man; i++)
-    {        
-        std::this_thread::sleep_for(2090ms);
-        c--;
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);//зелёныи
-        std::cout << "oprtor: " << c << std::endl;        
+public:
+    explicit Reversed(Text* text) : DecoratedText(text) {}
+
+    void render(const std::string& data) const
+    {
+        std::string var_data = data;
+        std::reverse(var_data.begin(), var_data.end());        
+        text_->render(var_data);
     }
-    return c;
-}
+};
+
+class Link :public DecoratedText
+{
+public:
+    explicit Link(Text* text) : DecoratedText(text) {}
+    void render(const std::string& data, const std::string& data1) const
+    {
+        std::cout << "<a href = ";
+        text_->render(data);
+        std::cout << ">";
+        text_->render(data1);
+        std::cout << "</a>";
+    }
+};
+
 
 int main()
 {
-    setlocale(LC_ALL, "ru");
-    SetConsoleCP(1251);
-    SetConsoleOutputCP(1251);
+    auto text_block = new ItalicText(new BoldText(new Text()));
+    text_block->render("Hello world");
+    std::cout << std::endl;    
 
-    std::atomic<int> c;
-    int man = 10;    
-    //std::cout << std::boolalpha << c.is_always_lock_free << std::endl;
-    
-    std::thread t3([&]() {c.store(cl(man, c), std::memory_order_seq_cst); });
-    std::thread t4([&]() {c.store(op(man, c), std::memory_order_seq_cst/*std::memory_order_relaxed*/); });
-    t3.join();
-    t4.join();    
-    std::cout << "Количество оставшихся клиентов: " << c << std::endl;
+    auto text_paragraph = new Paragraph(new Text());
+    text_paragraph->render("Hello world");
+    std::cout << std::endl;
+
+    auto text_reversed = new Reversed(new Text());
+    text_reversed->render("Hello world");
+    std::cout << std::endl;
+
+    auto text_link = new Link(new Text());
+    text_link->render("netology.ru", "Hello world");
+
+    delete text_block;
+    delete text_paragraph;
+    delete text_reversed;
+    delete text_link;
+
     return 0;
 }
-//1std::memory_order_relaxed, 2std::memory_order_acquire, 3std::memory_order_consume,
-//4std::memory_order_acq_rel, 5std::memory_order_release и 6std::memory_order_seq_cst.

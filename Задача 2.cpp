@@ -1,106 +1,149 @@
-﻿//Задача 2
-
-#include <string>
+﻿#include <string>
 #include <iostream>
-#include <algorithm>
+#include <fstream>
+#include <vector>
+#include <windows.h>
 
-
-
-class Text {
-public:
-    virtual void render(const std::string& data) const {
-        std::cout << data;
-    }
-};
-
-
-class DecoratedText : public Text {
-public:
-    explicit DecoratedText(Text* text) : text_(text) {}
-    Text* text_;
-};
-
-class ItalicText : public DecoratedText {
-public:
-    explicit ItalicText(Text* text) : DecoratedText(text) {}
-    void render(const std::string& data)  const {
-        std::cout << "<i>";
-        text_->render(data);
-        std::cout << "</i>";
-    }
-};
-
-class BoldText : public DecoratedText {
-public:
-    explicit BoldText(Text* text) : DecoratedText(text) {}
-    void render(const std::string& data) const {
-        std::cout << "<b>";
-        text_->render(data);
-        std::cout << "</b>";
-    }
-};
-
-class Paragraph :public DecoratedText 
+class Observer 
 {
-public:
-    explicit Paragraph(Text* text) : DecoratedText(text) {}
-    void render(const std::string& data) const 
-    {
-        std::cout << "<p>";
-        text_->render(data);
-        std::cout << "</p>";
-    }
+public:	
+	virtual void onWarning(const std::string& message) {}
+	virtual void onError(const std::string& message) {}
+	virtual void onFatalError(const std::string& message) {}
+	virtual ~Observer() = default;
 };
 
-class Reversed :public DecoratedText
-{    
-public:
-    explicit Reversed(Text* text) : DecoratedText(text) {}
-
-    void render(const std::string& data) const
-    {
-        std::string var_data = data;
-        std::reverse(var_data.begin(), var_data.end());        
-        text_->render(var_data);
-    }
-};
-
-class Link :public DecoratedText
+class Observed_object //наблюдаемыи класс
 {
+private:
+	std::vector<Observer*> observers;	
+
 public:
-    explicit Link(Text* text) : DecoratedText(text) {}
-    void render(const std::string& data, const std::string& data1) const
-    {
-        std::cout << "<a href = ";
-        text_->render(data);
-        std::cout << ">";
-        text_->render(data1);
-        std::cout << "</a>";
-    }
+	// зарегистрировать наблюдателя
+	void registerObserver(Observer* observer)
+	{
+		observers.push_back(observer);
+	}
+
+	void RemoveObserver(Observer* observer)
+	{
+		auto it = std::remove(observers.begin(), observers.end(), observer);
+		observers.erase(it, observers.end());
+	}
+
+
+	void warning(const std::string& message) const   
+	{
+		for (auto observer : observers)
+		{
+			observer->onWarning(message);
+		}
+	}
+
+	void error(const std::string& message) const   
+	{
+		for (auto observer : observers)
+		{
+			observer->onError(message);
+		}
+	}
+
+	void fatalError(const std::string& message) const   
+	{
+		for (auto observer : observers)
+		{
+			observer->onFatalError(message);
+
+		}
+	}
 };
+
+class Display_warning : public Observer
+{
+private:	
+	Observed_object* warning;
+public:
+	Display_warning(Observed_object* obj):warning(obj)
+	{
+		obj->registerObserver(this);
+	}
+
+	void onWarning(const std::string& message) 
+	{
+		std::cout << "Сообщение: " << message << std::endl;
+		warning->RemoveObserver(this);
+	}
+};
+
+class Display_error : public Observer 
+{
+private:
+	Observed_object* error;
+public:
+	Display_error(Observed_object* obj) :error(obj)
+	{
+		obj->registerObserver(this);
+	}
+
+	void onError(const std::string& message)
+	{
+		//std::cout << "Ошибка: " << message << std::endl;
+		std::ofstream rf;
+		rf.open("Текст.txt");
+		if (!rf.is_open()) { std::cout << "not open!"; }
+		rf << message << std::endl;
+		rf.close();
+		error->RemoveObserver(this);
+	}
+};
+
+class Display_fatalError : public Observer
+{
+private:
+	Observed_object* fatalError;
+public:
+	Display_fatalError(Observed_object* obj) :fatalError(obj)
+	{
+		obj->registerObserver(this);
+	}
+
+	void onFatalError(const std::string& message)
+	{
+		std::cout << "Критическая ошибка: " << message << std::endl;
+		std::ofstream rf;
+		rf.open("Текст.txt");
+		if (!rf.is_open()) { std::cout << "not open!"; }
+		rf << message << std::endl;
+		rf.close();
+		fatalError->RemoveObserver(this);
+	}
+};
+
+
+
 
 
 int main()
 {
-    auto text_block = new ItalicText(new BoldText(new Text()));
-    text_block->render("Hello world");
-    std::cout << std::endl;    
+	setlocale(LC_ALL, "ru");
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
 
-    auto text_paragraph = new Paragraph(new Text());
-    text_paragraph->render("Hello world");
-    std::cout << std::endl;
+	std::string mes{ "Test message" };
+	std::string fe_mes{ "fatal_error!" };
 
-    auto text_reversed = new Reversed(new Text());
-    text_reversed->render("Hello world");
-    std::cout << std::endl;
+	Observed_object* object = new Observed_object;
+	Display_warning* disw = new Display_warning(object);
+	Display_error* dise = new Display_error(object);
+	Display_fatalError* disfe =new Display_fatalError(object);
 
-    auto text_link = new Link(new Text());
-    text_link->render("netology.ru", "Hello world");
+	object->warning(mes);
+	object->error(mes);
+	object->fatalError(fe_mes);
 
-    delete text_block;
-    delete text_paragraph;
-    delete text_reversed;
-    delete text_link;
+	delete disw;
+	delete dise;
+	delete disfe; 
 
-    return 0;
+	return 0;
 }
